@@ -4,6 +4,7 @@ let saveNoteBtn;
 let newNoteBtn;
 let noteList;
 
+
 if (window.location.pathname === '/notes') {
   noteTitle = document.querySelector('.note-title');
   noteText = document.querySelector('.note-textarea');
@@ -71,10 +72,12 @@ const handleNoteSave = () => {
     title: noteTitle.value,
     text: noteText.value,
   };
-  saveNote(newNote).then(() => {
+  saveNote(newNote).then((res) => {
     getAndRenderNotes();
     renderActiveNote();
-  });
+    // ADDED TO GIVE FEEDBACK TO USER VIA BROWSER CONSOLE
+    return res.text();
+  }).then(body => console.log(body));
 };
 
 // Delete the clicked note
@@ -89,10 +92,12 @@ const handleNoteDelete = (e) => {
     activeNote = {};
   }
 
-  deleteNote(noteId).then(() => {
+  deleteNote(noteId).then((res) => {
     getAndRenderNotes();
     renderActiveNote();
-  });
+    // ADDED TO GIVE FEEDBACK TO USER VIA BROWSER CONSOLE
+    return res.text();
+  }).then(body => console.log(body));
 };
 
 // Sets the activeNote and displays it
@@ -133,11 +138,14 @@ const renderNoteList = async (notes) => {
     const spanEl = document.createElement('span');
     spanEl.classList.add('list-item-title');
     spanEl.innerText = text;
-    spanEl.addEventListener('click', handleNoteView);
+    
+    // COMMENTED THIS LINE OUT AND COPIED TO THE CONDITIONAL BELOW TO PREVENT ERROR WHEN CLICKING ON "No Saved Notes"
+    // spanEl.addEventListener('click', handleNoteView);
 
     liEl.append(spanEl);
 
     if (delBtn) {
+      spanEl.addEventListener('click', handleNoteView);
       const delBtnEl = document.createElement('i');
       delBtnEl.classList.add(
         'fas',
