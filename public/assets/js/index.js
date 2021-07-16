@@ -11,6 +11,8 @@ if (window.location.pathname === '/notes') {
   saveNoteBtn = document.querySelector('.save-note');
   newNoteBtn = document.querySelector('.new-note');
   noteList = document.querySelectorAll('.list-container .list-group');
+  // ADDED VAR FOR EDIT BUTTON
+  editNoteBtn = document.querySelector('.edit-note');
 }
 
 // Show an element
@@ -43,6 +45,16 @@ const saveNote = (note) =>
     body: JSON.stringify(note),
   });
 
+// ADDED EDIT NOTE FUNCTION
+const editNote = (note) => 
+  fetch(`/api/notes/${note.id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(note),
+  });
+
 const deleteNote = (id) =>
   fetch(`/api/notes/${id}`, {
     method: 'DELETE',
@@ -54,12 +66,23 @@ const deleteNote = (id) =>
 const renderActiveNote = () => {
   hide(saveNoteBtn);
 
-  if (activeNote.id) {
+  // ADDED EXTRA CONDITIONAL TO HANDLE EDIT NOTE SITUATIONS
+  if (activeNote.edit) {
+    hide(editNoteBtn);
+    show(saveNoteBtn);
+    noteTitle.removeAttribute('readonly');
+    noteText.removeAttribute('readonly');
+
+  } else if (activeNote.id) {
+    // SHOW EDIT BTN
+    show(editNoteBtn);
     noteTitle.setAttribute('readonly', true);
     noteText.setAttribute('readonly', true);
     noteTitle.value = activeNote.title;
     noteText.value = activeNote.text;
   } else {
+    // HIDE EDIT BTN
+    hide(editNoteBtn);
     noteTitle.removeAttribute('readonly');
     noteText.removeAttribute('readonly');
     noteTitle.value = '';
@@ -67,17 +90,37 @@ const renderActiveNote = () => {
   }
 };
 
+const handleEditNote = () => {
+  activeNote.edit = true;
+  renderActiveNote();
+};
+
 const handleNoteSave = () => {
-  const newNote = {
-    title: noteTitle.value,
-    text: noteText.value,
-  };
-  saveNote(newNote).then((res) => {
-    getAndRenderNotes();
-    renderActiveNote();
-    // ADDED TO GIVE FEEDBACK TO USER VIA BROWSER CONSOLE
-    return res.text();
-  }).then(body => console.log(body));
+  // ADDED CONDITIONAL TO DECIDE SAVE/EDIT
+  if (!activeNote.edit){
+    const newNote = {
+      title: noteTitle.value,
+      text: noteText.value,
+    };
+    saveNote(newNote).then((res) => {
+      getAndRenderNotes();
+      renderActiveNote();
+      // ADDED TO GIVE FEEDBACK TO USER VIA BROWSER CONSOLE
+      return res.text();
+    }).then(body => console.log(body));
+  } else {
+    activeNote.title = noteTitle.value;
+    activeNote.text = noteText.value;
+    delete activeNote.edit;
+    editNote(activeNote).then((res) => {
+      activeNote = {};
+      getAndRenderNotes();
+      renderActiveNote();
+      // ADDED TO GIVE FEEDBACK TO USER VIA BROWSER CONSOLE
+      return res.text();
+    }).then(body => console.log(body));
+
+  }
 };
 
 // Delete the clicked note
@@ -186,6 +229,8 @@ if (window.location.pathname === '/notes') {
   newNoteBtn.addEventListener('click', handleNewNoteView);
   noteTitle.addEventListener('keyup', handleRenderSaveBtn);
   noteText.addEventListener('keyup', handleRenderSaveBtn);
+  // ADDED EVENT LISTENER FOR EDIT BUTTON
+  editNoteBtn.addEventListener('click', handleEditNote);
 }
 
 getAndRenderNotes();

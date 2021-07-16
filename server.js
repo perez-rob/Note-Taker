@@ -36,9 +36,32 @@ app.post('/api/notes', (req,res) => {
 
   fs.writeFile('./db/db.json', newData, (err) => {
     if (err) {
-      res.send('FAILED TO SAVE FILE:', err)
+      res.send('FAILED TO SAVE NOTE:', err)
     } else {
       res.send(`SUCCESSFULLY SAVED NOTE: ID = ${req.body.id}`)
+    }
+  });
+});
+
+app.put('/api/notes/:id', (req,res) => {
+  let editID = req.params.id;
+  let storedNotes = fs.readFileSync('./db/db.json', 'utf8');
+  let jsonNotes = JSON.parse(storedNotes);
+  let updateNotes = jsonNotes.reduce((arr, note) => {
+    if (note.id == editID) {
+      arr.push(req.body);
+    } else {
+      arr.push(note);
+    }
+    return arr;
+  }, []);
+  let newData = JSON.stringify(updateNotes, null, 2);
+
+  fs.writeFile('./db/db.json', newData, (err) => {
+    if (err) {
+      res.send('FAILED TO EDIT NOTE:', err)
+    } else {
+      res.send(`SUCCESSFULLY EDITED NOTE: ID = ${req.params.id}`)
     }
   });
 });
