@@ -9,6 +9,7 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 
 app.use(express.urlencoded({ extended: true }));
+// needed so that the files in 'public' (in particular the css file) are used when the page is rendered
 app.use(express.static('public'));
 app.use(express.json());
 
